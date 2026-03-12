@@ -1,70 +1,97 @@
 let tasks = [];
 
-//add task to list//
-document.getElementById('addTaskButton').addEventListener('click', function() {
+// ADD TASK
+document.getElementById('addTaskButton').addEventListener('click', function () {
+
   const taskInput = document.getElementById('taskInput');
   const taskText = taskInput.value.trim();
+
   if (taskText !== '') {
     tasks.push({ text: taskText, completed: false });
     taskInput.value = '';
     renderTasks();
   }
+
 });
 
 
+// RENDER TASKS
+function renderTasks() {
 
-//Delete function//
-function renderTasks() { 
-  
   const taskList = document.getElementById('taskList');
   taskList.innerHTML = '';
+
+  // Empty state
+  if (tasks.length === 0) {
+    const emptyMessage = document.createElement('li');
+    emptyMessage.textContent = "No tasks available";
+    emptyMessage.style.listStyle = "none";
+    taskList.appendChild(emptyMessage);
+    return;
+  }
+
   tasks.forEach((task, index) => {
+
     const li = document.createElement('li');
+    li.dataset.index = index;
+
+    if (task.completed) {
+      li.style.textDecoration = "line-through";
+      li.style.opacity = "0.6";
+    }
+
     li.textContent = task.text;
+
+    // DELETE BUTTON
     const deleteButton = document.createElement('button');
     deleteButton.textContent = 'Delete';
-    deleteButton.style.backgroundColor = '#007bff';
-    deleteButton.style.border = 'none';
-    deleteButton.style.borderRadius = '8px';
-    deleteButton.style.width = 'fit-content';
-    deleteButton.style.height = '30px';
-    deleteButton.style.color = 'white';
+    deleteButton.classList.add("delete-btn");
+   
 
-    deleteButton.addEventListener('click', function() {
-      tasks.splice(index, 1);
-      renderTasks();
-    }
-    );
-    li.appendChild(deleteButton);
-    taskList.appendChild(li);
-
-//Complete function//
+    // COMPLETE BUTTON
     const completeButton = document.createElement('button');
     completeButton.textContent = task.completed ? '✔' : 'Complete';
-    completeButton.style.backgroundColor = task.completed ? '#007bff' : '#c70000';
-    completeButton.style.color = 'white';
-    completeButton.style.border = 'none';
-    completeButton.style.borderRadius = '8px';
-    completeButton.style.width = 'fit-content';
-    completeButton.style.height = '30px';
-    completeButton.addEventListener('click', function() {
-      task.completed = !task.completed;
-      renderTasks();
-    });
+    completeButton.classList.add("complete-btn");
+    li.appendChild(deleteButton);
     li.appendChild(completeButton);
+    taskList.appendChild(li);
+
   });
 }
 
 
-// Prevent data loss on page refresh//
+// EVENT DELEGATION
+document.getElementById("taskList").addEventListener("click", function (e) {
+
+  const li = e.target.closest("li");
+  if (!li) return;
+
+  const index = li.dataset.index;
+
+  // DELETE TASK
+  if (e.target.classList.contains("delete-btn")) {
+    tasks.splice(index, 1);
+    renderTasks();
+    return;
+  }
+
+  // COMPLETE TOGGLE
+  if (e.target.classList.contains("complete-btn")) {
+    tasks[index].completed = !tasks[index].completed;
+    renderTasks();
+  }
+
+});
+
+
+// LOAD FROM LOCAL STORAGE
 if (localStorage.getItem('tasks')) {
   tasks = JSON.parse(localStorage.getItem('tasks'));
   renderTasks();
 }
 
-window.addEventListener('beforeunload', function() {
+
+// SAVE BEFORE REFRESH
+window.addEventListener('beforeunload', function () {
   localStorage.setItem('tasks', JSON.stringify(tasks));
 });
-
-
-
